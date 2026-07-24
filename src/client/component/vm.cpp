@@ -8,8 +8,8 @@
 namespace vm {
 inline bool vm_op_call_state_valid(game::scr::scriptInstance_t inst) {
   const auto *frame = game::scr::vm::gScrVmPub->instance[inst].function_frame;
-  return game::readable_ptr(frame) && game::readable_ptr(frame->fs.startTop) &&
-        game::readable_ptr(frame->fs.top);
+  return game::nonnull(frame) && game::nonnull(frame->fs.startTop) &&
+        game::nonnull(frame->fs.top);
 }
 
 void log_invalid_vm_state(const char *handler_name) {
