@@ -6,10 +6,21 @@
 #include <utils/hook.hpp>
 
 namespace vm {
+// Both observed crash dumps for this bug (#260/#261 and a later repro) had
+// a corrupted pointer with its entire low 32 bits zeroed
+// (0x00007FF700000000, 0x00007FF600000000). nonnull alone doesn't catch
+// this since both fall well inside its accepted range. Real heap/stack
+// pointers are never 4GB-aligned, so filtering on that costs nothing extra
+// and catches the actual corruption pattern seen in practice.
+inline bool plausible_vm_ptr(const void *ptr) {
+  const auto addr = reinterpret_cast<uintptr_t>(ptr);
+  return game::nonnull(addr) && (addr & 0xFFFFFFFFull) != 0;
+}
+
 inline bool vm_op_call_state_valid(game::scr::scriptInstance_t inst) {
   const auto *frame = game::scr::vm::gScrVmPub->instance[inst].function_frame;
-  return game::nonnull(frame) && game::nonnull(frame->fs.startTop) &&
-        game::nonnull(frame->fs.top);
+  return plausible_vm_ptr(frame) && plausible_vm_ptr(frame->fs.startTop) &&
+        plausible_vm_ptr(frame->fs.top);
 }
 
 void log_invalid_vm_state(const char *handler_name) {
