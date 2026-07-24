@@ -3,6 +3,7 @@
 
 #include <game/game.hpp>
 #include <game/utils.hpp>
+#include <utils/hook.hpp>
 
 namespace vm {
 inline bool vm_op_call_state_valid(game::scr::scriptInstance_t inst) {
